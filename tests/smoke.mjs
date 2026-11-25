@@ -13,7 +13,15 @@ const SKILL = path.join(HERE, '../plugins/code-atlas/skills/code-atlas');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'code-atlas-'));
 fs.cpSync(path.join(HERE, '../demo/shop'), tmp, { recursive: true });
 fs.writeFileSync(path.join(tmp, '.env'), 'API_KEY=not-a-real-secret\n'); // must never appear in the map
+// hostile repo content, which must not leak or run: a committed fake TypeScript, a symlink out of the repo, an odd file name
+const outside = path.join(os.tmpdir(), 'code-atlas-outside-' + process.pid + '.txt'); fs.writeFileSync(outside, 'OUTSIDE-SECRET\n');
+fs.mkdirSync(path.join(tmp, 'node_modules/typescript'), { recursive: true });
+fs.writeFileSync(path.join(tmp, 'node_modules/typescript/package.json'), '{"name":"typescript","main":"index.js"}');
+fs.writeFileSync(path.join(tmp, 'node_modules/typescript/index.js'), "require('fs').writeFileSync(__dirname + '/RAN', '1'); module.exports = {};");
+fs.symlinkSync(outside, path.join(tmp, 'scripts/linked.py'));
+fs.writeFileSync(path.join(tmp, "scripts/odd \"name\".py"), 'def odd():\n    return 1\n');
 execFileSync('git', ['init', '-q'], { cwd: tmp });
+execFileSync('git', ['add', '-f', 'node_modules'], { cwd: tmp });
 const run = (script, ...args) => execFileSync(process.execPath, [path.join(SKILL, 'scripts', script), ...args], { cwd: tmp, encoding: 'utf8' });
 
 const init = JSON.parse(run('init.mjs'));
@@ -29,7 +37,11 @@ const M = global.window.MAP;
 const fns = f => M.nodes.filter(n => n.kind === 'fn' && n.parent === f).map(n => n.short);
 const wire = (a, b) => M.edges.some(e => e.from.startsWith(a) && e.to.startsWith(b));
 
-assert.equal(M.counts.files, 14, '14 code files');
+assert.ok(!fs.existsSync(path.join(tmp, 'node_modules/typescript/RAN')), 'a TypeScript committed inside the scanned repo is never loaded (it would run its code)');
+assert.ok(!fs.readFileSync(path.join(tmp, 'code-atlas/data.js'), 'utf8').includes('OUTSIDE-SECRET') && !M.nodes.some(n => n.id === 'scripts/linked.py'), 'a symlink pointing outside the repo is not read');
+assert.ok(M.nodes.some(n => n.id === 'scripts/odd "name".py'), 'unusual file names are read');
+fs.rmSync(outside);
+assert.equal(M.counts.files, 15, '15 code files (the demo plus the odd name)');
 assert.ok(!M.nodes.some(n => n.id.includes('.env')), 'secrets are excluded');
 assert.ok(M.notCovered.length === 0, 'every code file is on the map');
 for (const [file, want] of Object.entries({

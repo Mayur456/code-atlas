@@ -34,9 +34,15 @@ if (!fs.existsSync(CFG_PATH)) { console.error(`No ${CFG_PATH}. Run init.mjs firs
 const CFG = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
 const MAX_KB = CFG.maxFileKB ?? 300, MAX_FILES = CFG.maxFiles ?? 4000, GROUP_AT = CFG.groupAt ?? 12;
 
+const REAL_ROOT = fs.realpathSync(ROOT);
+// a file the repo really contains: no symlink, nothing that resolves outside the repo (a link to ~/.ssh would copy it into the atlas)
+const inside = rel => { try { const p = path.join(ROOT, rel); return fs.lstatSync(p).isFile() && !path.relative(REAL_ROOT, fs.realpathSync(p)).startsWith('..'); } catch { return false; } };
 // ---------- optional precise parsers ----------
+// Loading a module runs its code, so a TypeScript that the scanned repo itself ships (committed to git) is never loaded:
+// only one installed on this machine (npm install, untracked) or the global one. Without git, the project copy is skipped.
+const userInstalled = file => { try { const rel = path.relative(ROOT, file); return rel.startsWith('..') || execFileSync('git', ['ls-files', '--', rel], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() === ''; } catch { return false; } };
 let ts = null;
-if (!flag('--generic')) for (const base of [ROOT, process.cwd()]) { try { ts = createRequire(path.join(base, 'package.json'))('typescript'); break; } catch {} }
+if (!flag('--generic')) for (const base of new Set([ROOT, process.cwd()])) { try { const req = createRequire(path.join(base, 'package.json')), where = req.resolve('typescript'); if (userInstalled(where)) { ts = req('typescript'); break; } console.warn(`skipped ${path.relative(ROOT, where)}: it is part of the scanned repo, and loading it would run its code`); } catch {} }
 if (!ts && !flag('--generic')) { try { const g = execFileSync('npm', ['root', '-g'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); ts = createRequire(path.join(g, 'x.js'))('typescript'); } catch {} }
 let PYTHON = null;
 if (!flag('--generic')) for (const p of ['python3', 'python']) { try { execFileSync(p, ['-c', 'import ast'], { stdio: 'ignore' }); PYTHON = p; break; } catch {} }
@@ -52,8 +58,8 @@ const DEFAULT_EXCLUDE = [
 const EXCLUDE = [...DEFAULT_EXCLUDE, ...(CFG.exclude || [])].map(r => new RegExp(r));
 if (OUT_REL && !OUT_REL.startsWith('..')) EXCLUDE.push(new RegExp('^' + reEsc(OUT_REL) + '/'));
 function listFiles() {
-  try { return execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 256e6 }).split('\n').filter(Boolean); }
-  catch { const out = []; const walk = d => { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const p = d ? d + '/' + e.name : e.name; if (EXCLUDE.some(r => r.test(p + (e.isDirectory() ? '/' : '')))) continue; e.isDirectory() ? walk(p) : out.push(p); } }; walk(''); return out; }
+  try { return execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 256e6 }).split('\0').filter(f => f && inside(f)); } // -z: unusual file names come through as they are
+  catch { const out = []; const walk = d => { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const p = d ? d + '/' + e.name : e.name; if (EXCLUDE.some(r => r.test(p + (e.isDirectory() ? '/' : '')))) continue; e.isDirectory() ? walk(p) : inside(p) && out.push(p); } }; walk(''); return out; }
 }
 const LANG = { // extension -> family used by the plain-text reader
   js: 'js', mjs: 'js', cjs: 'js', jsx: 'js', ts: 'js', tsx: 'js', mts: 'js', cts: 'js',
@@ -384,7 +390,7 @@ for (const n of nodes.values()) { const e = explain.nodes[n.id]; n.status = !e ?
 // ---------- 6. theme: copies of fonts and a stylesheet inside the output folder (browsers block files outside it) ----------
 const THEME = fs.existsSync(path.join(OUT, 'theme.json')) ? JSON.parse(fs.readFileSync(path.join(OUT, 'theme.json'), 'utf8')) : {};
 fs.mkdirSync(path.join(OUT, 'assets/fonts'), { recursive: true });
-const faces = (THEME.fontFiles || []).map(ff => { const src = path.resolve(ROOT, ff.path); if (!fs.existsSync(src)) { warnings.push(`theme.json: font file not found: ${ff.path}`); return ''; } const dst = path.basename(src); fs.copyFileSync(src, path.join(OUT, 'assets/fonts', dst)); return `@font-face{font-family:'${ff.family}';font-weight:${ff.weight || '100 900'};font-style:${ff.style || 'normal'};font-display:swap;src:url('fonts/${dst}')}`; });
+const faces = (THEME.fontFiles || []).map(ff => { const src = path.resolve(ROOT, ff.path); if (!inside(path.relative(ROOT, src))) { warnings.push(`theme.json: font file not found: ${ff.path}`); return ''; } const dst = path.basename(src); fs.copyFileSync(src, path.join(OUT, 'assets/fonts', dst)); return `@font-face{font-family:'${ff.family}';font-weight:${ff.weight || '100 900'};font-style:${ff.style || 'normal'};font-display:swap;src:url('fonts/${dst}')}`; });
 const accent = THEME.accent || '#3B82F6';
 const tok = (o, k, d) => (o && o[k]) || d;
 const L = THEME.light || {}, D = THEME.dark || {};

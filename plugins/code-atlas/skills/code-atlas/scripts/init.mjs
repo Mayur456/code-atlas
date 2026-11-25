@@ -24,10 +24,13 @@ fs.copyFileSync(path.join(HERE, '../assets/viewer.html'), path.join(OUT, 'index.
 const git = gitTop(ROOT);
 if (git) { const ex = path.join(git, '.git/info/exclude'), rel = '/' + path.relative(git, OUT).split(path.sep).join('/') + '/'; /* anchored, so other folders with the same name are not hidden */ if (!rel.startsWith('/..')) { fs.mkdirSync(path.dirname(ex), { recursive: true }); const cur = fs.existsSync(ex) ? fs.readFileSync(ex, 'utf8') : ''; if (!cur.split('\n').includes(rel)) fs.appendFileSync(ex, `\n# code atlas (local only, contains copies of the code)\n${rel}\n`); } }
 
+const REAL_ROOT = fs.realpathSync(ROOT);
+// a file the repo really contains: no symlink, nothing that resolves outside the repo (a link to ~/.ssh would copy it into the atlas)
+const inside = rel => { try { const p = path.join(ROOT, rel); return fs.lstatSync(p).isFile() && !path.relative(REAL_ROOT, fs.realpathSync(p)).startsWith('..'); } catch { return false; } };
 // files
 let files = [];
-try { files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 256e6 }).split('\n').filter(Boolean); }
-catch { const walk = d => { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const p = d ? d + '/' + e.name : e.name; if (/^(node_modules|\.git|vendor|dist|build|target|\.venv|venv)$/.test(e.name)) continue; e.isDirectory() ? walk(p) : files.push(p); } }; walk(''); }
+try { files = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 256e6 }).split('\0').filter(f => f && inside(f)); }
+catch { const walk = d => { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const p = d ? d + '/' + e.name : e.name; if (/^(node_modules|\.git|vendor|dist|build|target|\.venv|venv)$/.test(e.name)) continue; e.isDirectory() ? walk(p) : inside(p) && files.push(p); } }; walk(''); }
 const CODE = /\.(js|mjs|cjs|jsx|ts|tsx|vue|svelte|astro|html?|py|go|rs|java|cs|c|h|cpp|cc|hpp|kt|kts|swift|scala|dart|php|rb|lua|ex|exs|sh|bash|css|scss|sql|r|jl|groovy)$|(^|\/)(Makefile|Dockerfile)$/;
 const SKIP = /(^|\/)(node_modules|vendor|dist|build|out|target|\.venv|venv|__pycache__|coverage)\/|\.min\.|(^|\/)code-atlas\//;
 const code = files.filter(f => CODE.test(f) && !SKIP.test(f));
@@ -44,7 +47,7 @@ for (const f of [...new Set([...cssLike, ...tw, ...themeFiles])]) {
   for (const m of t.matchAll(/font-family\s*:\s*([^;}{]+)/g)) { const fam = m[1].split(',')[0].trim().replace(/["']/g, ''); if (fam && !/^(var|inherit|system-ui|sans-serif|serif|monospace)/.test(fam)) fontFams.set(fam, (fontFams.get(fam) || 0) + 1); }
   for (const m of t.matchAll(/@font-face\s*\{([^}]+)\}/g)) {
     const fam = /font-family\s*:\s*["']?([^;"']+)/.exec(m[1])?.[1]?.trim(), w = /font-weight\s*:\s*([^;]+)/.exec(m[1])?.[1]?.trim(), u = /url\(\s*["']?([^"')]+\.(?:woff2|woff|ttf|otf))["']?\s*\)/.exec(m[1])?.[1];
-    if (fam && u && !/^https?:/.test(u)) { const p = path.posix.normalize(path.posix.join(path.posix.dirname(f), u.replace(/^\//, ''))); const abs = u.startsWith('/') ? ['public/', 'static/', ''].map(b => b + u.slice(1)).find(c => fs.existsSync(path.join(ROOT, c))) : p; if (abs && fs.existsSync(path.join(ROOT, abs))) fontFiles.push({ family: fam, weight: w || '400', path: abs }); }
+    if (fam && u && !/^https?:/.test(u)) { const p = path.posix.normalize(path.posix.join(path.posix.dirname(f), u.replace(/^\//, ''))); const abs = u.startsWith('/') ? ['public/', 'static/', ''].map(b => b + u.slice(1)).find(c => fs.existsSync(path.join(ROOT, c))) : p; if (abs && inside(abs)) fontFiles.push({ family: fam, weight: w || '400', path: abs }); }
   }
 }
 function expand(h) { return h.length === 4 ? '#' + [...h.slice(1)].map(c => c + c).join('') : h.toUpperCase(); }
