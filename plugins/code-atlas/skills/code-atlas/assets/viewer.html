@@ -1162,7 +1162,7 @@ function drawStory() {
   $('#lvSub').textContent = st.intro;
   // a way out: into a building, or back up the street
   const inside = kids(level.id ?? '').filter(k2 => opens(k2)).length || !level.id;
-  $('#lvAct').innerHTML = level.id ? `<span class="scopenote" style="pointer-events:auto">${inside ? 'Click a house to go inside.' : 'Everyone in this building is in the story.'}</span>` : '<span class="scopenote">Click a neighbourhood to visit it.</span>';
+  $('#lvAct').innerHTML = level.id ? `<span class="scopenote" style="pointer-events:auto">${inside ? `Click a ${W.building} to go inside.` : `Everyone in this ${W.building} is in the story.`}</span>` : `<span class="scopenote">Click a ${W.neighbourhood} to visit it.</span>`;
   ss.quiz ? drawQuiz(st) : drawScene(st);
 }
 function shapeSVG(x, w, h, top) { // one building per world, drawn with the same classes so area colours apply

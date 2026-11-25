@@ -6,9 +6,9 @@ It is built for people learning a codebase: newcomers to a team, people who buil
 
 | Map | Beginner |
 |---|---|
-| ![Map view: areas of a demo codebase as cards](docs/screenshots/1-map-overview.png) | ![Beginner view: a file's functions, numbered calls, and the code panel](docs/screenshots/2-beginner-file.png) |
+| ![Map view: areas of a demo codebase as cards](docs/screenshots/1-map-overview.png) | ![Beginner view: a function with Takes in, Does, Gives back, the level switch and its changed lines](docs/screenshots/2-beginner-file.png) |
 | **Story** | **Graph** |
-| ![Story view: the codebase as a small town with speech bubbles](docs/screenshots/3-story.png) | ![Graph view: every function as a dot, clustered by area](docs/screenshots/4-graph.png) |
+| ![Story view: the code as a space station, with the World menu](docs/screenshots/3-story.png) | ![Graph view: every function as a dot, clustered by area](docs/screenshots/4-graph.png) |
 
 *Screenshots from the made-up demo project in [`demo/shop`](demo/shop).*
 
