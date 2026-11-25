@@ -1,0 +1,16 @@
+{
+  "name": "code-atlas",
+  "owner": { "name": "code-atlas" },
+  "metadata": { "description": "Turn any codebase into a visual, beginner-friendly website that explains how the code works." },
+  "plugins": [
+    {
+      "name": "code-atlas",
+      "source": "./plugins/code-atlas",
+      "description": "Map any codebase, in any language: zoomable map, plain-English explanations, Beginner and Story views, and a knowledge graph of how everything connects.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": ["codebase", "onboarding", "visualization", "knowledge-graph", "documentation", "learning"],
+      "category": "development"
+    }
+  ]
+}

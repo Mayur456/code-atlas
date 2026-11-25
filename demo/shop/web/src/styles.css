@@ -1,0 +1,2 @@
+:root { --brand-primary: #E11D48; --bg: #FFFFFF; }
+body { font-family: 'Nunito', sans-serif; color: var(--brand-primary); }
