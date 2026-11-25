@@ -22,7 +22,7 @@ fs.copyFileSync(path.join(HERE, '../assets/viewer.html'), path.join(OUT, 'index.
 
 // keep it out of git: local exclude, nothing to commit
 const git = gitTop(ROOT);
-if (git) { const ex = path.join(git, '.git/info/exclude'), rel = '/' + path.relative(git, OUT).split(path.sep).join('/') + '/'; // anchored, so other folders with the same name are not hidden if (!rel.startsWith('/..')) { fs.mkdirSync(path.dirname(ex), { recursive: true }); const cur = fs.existsSync(ex) ? fs.readFileSync(ex, 'utf8') : ''; if (!cur.split('\n').includes(rel)) fs.appendFileSync(ex, `\n# code atlas (local only, contains copies of the code)\n${rel}\n`); } }
+if (git) { const ex = path.join(git, '.git/info/exclude'), rel = '/' + path.relative(git, OUT).split(path.sep).join('/') + '/'; /* anchored, so other folders with the same name are not hidden */ if (!rel.startsWith('/..')) { fs.mkdirSync(path.dirname(ex), { recursive: true }); const cur = fs.existsSync(ex) ? fs.readFileSync(ex, 'utf8') : ''; if (!cur.split('\n').includes(rel)) fs.appendFileSync(ex, `\n# code atlas (local only, contains copies of the code)\n${rel}\n`); } }
 
 // files
 let files = [];
