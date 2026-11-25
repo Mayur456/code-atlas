@@ -1,3 +1,5 @@
-code-atlas/
+# generated maps (they contain copies of code); only at the top level and in the demo
+/code-atlas/
+demo/shop/code-atlas/
 node_modules/
 .DS_Store

@@ -1,0 +1,18 @@
+{
+  "name": "code-atlas",
+  "version": "1.0.0",
+  "description": "Map any codebase, in any language: zoomable map, plain-English explanations, Beginner and Story views, and a knowledge graph of how everything connects.",
+  "license": "MIT",
+  "keywords": [
+    "codebase",
+    "onboarding",
+    "visualization",
+    "knowledge-graph",
+    "documentation",
+    "learning"
+  ],
+  "author": {
+    "name": "code-atlas"
+  },
+  "icon": "./.claude-plugin/icon.png"
+}

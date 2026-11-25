@@ -52,6 +52,6 @@ const g = JSON.parse(fs.readFileSync(path.join(tmp, 'code-atlas/graph.json'), 'u
 assert.ok(g.nodes.length > 40 && g.edges.some(e => e.kind === 'contains'), 'knowledge graph written');
 assert.ok(fs.readFileSync(path.join(tmp, 'code-atlas/graph.graphml'), 'utf8').startsWith('<?xml'), 'GraphML written');
 assert.ok(fs.existsSync(path.join(tmp, 'code-atlas/index.html')) && fs.existsSync(path.join(tmp, 'code-atlas/assets/theme.css')), 'viewer and theme in place');
-assert.ok(fs.readFileSync(path.join(tmp, '.git/info/exclude'), 'utf8').includes('code-atlas/'), 'output folder is kept out of git');
+assert.ok(fs.readFileSync(path.join(tmp, '.git/info/exclude'), 'utf8').includes('/code-atlas/'), 'output folder is kept out of git');
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('smoke test passed');
