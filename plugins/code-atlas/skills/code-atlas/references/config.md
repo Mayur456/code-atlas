@@ -18,7 +18,8 @@ Both live in the output folder (default `<repo>/code-atlas/`). `init.mjs` writes
  "groupNames": { "web/src/components": "Screen pieces" },
  "edges": [{ "from": "web/src/router.ts#loadPage", "to": "web/src/pages/Home.vue", "kind": "opens" }],
  "lanes": [["Shared", "used by everything", ["lib"]], ["Apps", "what people use", ["web", "api"]]],
- "world": { "town": "Town", "neighbourhood": "neighbourhood", "building": "building", "person": "person" },
+ "world": { "pack": "town" },
+ "depth": "normal",
  "maxFileKB": 300, "maxFiles": 4000, "groupAt": 12
 }
 ```
@@ -32,7 +33,8 @@ Both live in the output folder (default `<repo>/code-atlas/`). `init.mjs` writes
 - **groupNames:** friendly names for automatic folder groups, keyed by folder path.
 - **edges:** wires the scanner cannot see, such as code that loads a page by a name built at run time. Ids are box ids (see below). `kind` is one of calls, imports, runs, reads, opens, shows or uses.
 - **lanes:** the overview's columns, read left to right. Omit it to show all areas in one column.
-- **world:** nouns for the Story view.
+- **world:** the Story view's world. `pack` is `town` (default), `restaurant`, `space` or `school`; each sets the words, the job titles and the building drawing. The reader can switch worlds live from the World menu under the story; this setting is only the one it opens with. For a world that is not in the list, use `"pack": "custom"` with `label`, `town`, `neighbourhood`, `building`, `person`, `jobs` (`boss`, `worker`, `helper`, `ingredients`, `decoration`) and `shape` (the closest drawing: `house`, `counter`, `pod` or `school`). Example: `{ "pack": "custom", "label": "Cricket team", "town": "Stadium", "neighbourhood": "stand", "building": "dressing room", "person": "player", "jobs": { "boss": "Captain", "worker": "Batter", "helper": "Coach" }, "shape": "house" }`. Area `place` names and hand-written stories belong to this configured world; in other worlds the page builds the story from the data.
+- **depth:** the explanation level the page opens with: `simple`, `normal` (default) or `technical`. Readers switch levels in the details panel.
 - **Limits:** `maxFileKB` (larger files are skipped), `maxFiles`, and `groupAt` (a container with more files than this gets folder groups, repeatedly).
 
 **Box ids:**

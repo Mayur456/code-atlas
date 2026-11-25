@@ -410,9 +410,33 @@ let at = ''; try { at = execFileSync('git', ['log', '-1', '--format=%h %cs'], { 
 const STATE = path.join(OUT, '.scanstate.json'), parsers = { typescript: !!ts, python: !!PYTHON };
 try { const prev = JSON.parse(fs.readFileSync(STATE, 'utf8')); if (JSON.stringify(prev.parsers) !== JSON.stringify(parsers)) warnings.unshift(`parsers changed since the last scan (${JSON.stringify(prev.parsers)} -> ${JSON.stringify(parsers)}): some boxes may show "code changed" only because they are read differently. Run with the same setup (or --generic both times) to compare.`); } catch {}
 fs.writeFileSync(STATE, JSON.stringify({ parsers, at: new Date().toISOString() }));
-const meta = { title: CFG.title || path.basename(ROOT), id: hash(ROOT), at, parsers: { typescript: !!ts, python: !!PYTHON }, world: { town: 'Town', neighbourhood: 'neighbourhood', building: 'building', person: 'person', ...(CFG.world || {}) } };
+// ---------- what changed: uncommitted edits if there are any, otherwise the last commit ----------
+// only files that are on the map are kept, so excluded files (.env, keys) never reach data.js
+let changes = null;
+try {
+  const g = a => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64e6 });
+  const onMap = f => nodes.get(f)?.kind === 'file';
+  const dirty = g(['status', '--porcelain', '--untracked-files=all']).split('\n').filter(l => onMap(l.slice(3)));
+  const files = {};
+  let f = null, h = null;
+  for (const l of (dirty.length ? g(['diff', '--unified=0', '--no-color', 'HEAD']) : g(['show', '--format=', '--unified=0', '--no-color', 'HEAD'])).split('\n')) {
+    if (l.startsWith('diff --git')) { f = h = null; continue; }
+    if (l.startsWith('--- ')) { f = l === '--- /dev/null' ? 'NEW' : null; continue; }
+    if (l.startsWith('+++ ')) { const p = l.slice(6); f = l === '+++ /dev/null' || !onMap(p) ? null : (files[p] ??= { status: f === 'NEW' ? 'new' : 'changed', add: 0, del: 0, hunks: [] }); continue; }
+    if (!f || typeof f === 'string') continue;
+    const m = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(l);
+    if (m) { const c = +m[1], d = m[2] === undefined ? 1 : +m[2]; h = { start: c, end: c + Math.max(d, 1) - 1, text: '' }; f.hunks.push(h); continue; }
+    if (h && (l[0] === '+' || l[0] === '-')) { l[0] === '+' ? f.add++ : f.del++; if (h.text.split('\n').length < 30) h.text += (h.text ? '\n' : '') + l.slice(0, 200); }
+  }
+  if (dirty.length) for (const l of dirty) if (l.startsWith('??')) { const p = l.slice(3), n = nodes.get(p); files[p] = { status: 'new', add: n.lines || 0, del: 0, hunks: [] }; }
+  for (const c of Object.values(files)) c.hunks = c.hunks.slice(0, 20);
+  const fns = [...nodes.values()].filter(n => n.kind === 'fn' && files[n.parent] && (files[n.parent].status === 'new' || files[n.parent].hunks.some(hk => hk.end >= n.start && hk.start <= n.end))).map(n => n.id);
+  const head = g(['log', '-1', '--format=%h%x00%s']).trim().split('\0');
+  if (Object.keys(files).length) changes = dirty.length ? { label: 'not committed yet', files, fns } : { label: 'the last commit (' + head[0] + ')', subject: head[1], files, fns };
+} catch {} // not a git repo, or no commits yet
+const meta = { title: CFG.title || path.basename(ROOT), id: hash(ROOT), at, parsers: { typescript: !!ts, python: !!PYTHON }, world: CFG.world || { pack: 'town' }, depth: CFG.depth || 'normal' };
 const areaMeta = Object.fromEntries(areaList.map(a => [a.id, { color: a.color || '#94A3B8', icon: a.icon || 'box', place: a.place || a.name }]));
-fs.writeFileSync(path.join(OUT, 'data.js'), 'window.MAP = ' + JSON.stringify({ meta, counts, areas: areaMeta, lanes: CFG.lanes || null, nodes: [...nodes.values()], edges: dedup, tours: explain.tours, glossary: explain.glossary, beginner: explain.beginner, story: explain.story, notCovered, skipped }).replace(/<\/script/gi, '<\\/script') + ';\n');
+fs.writeFileSync(path.join(OUT, 'data.js'), 'window.MAP = ' + JSON.stringify({ meta, counts, areas: areaMeta, lanes: CFG.lanes || null, nodes: [...nodes.values()], edges: dedup, tours: explain.tours, changes, glossary: explain.glossary, beginner: explain.beginner, story: explain.story, notCovered, skipped }).replace(/<\/script/gi, '<\\/script') + ';\n');
 // the same map as a knowledge graph, for other tools: graph.json (nodes + edges) and graph.graphml (Gephi, yEd, Cytoscape)
 {
   const areaIdOf = n => { let p = n; while (p && p.kind !== 'area') p = nodes.get(p.parent); return p ? p.id.slice(5) : null; };

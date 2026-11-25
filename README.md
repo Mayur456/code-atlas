@@ -22,13 +22,16 @@ Code Atlas creates one folder, `code-atlas/`, inside your project. Open `code-at
   - **Play** steps through a file in the order the code runs.
   - **Follow this** shows one chain from start to finish.
   - Click any line in the code panel and the map points at the function it belongs to.
-- **Story:** the code retold as a town, or any world that fits your project. Areas are neighbourhoods, files are buildings and functions are people. They talk in speech bubbles, pass real data in envelopes, and end each building with a short quiz.
+- **Story:** the code retold as a world you pick from a menu: a town, a restaurant, a space station, a school, or one you describe to Claude ("make it a cricket team"). Areas are neighbourhoods, files are buildings and functions are people. They talk in speech bubbles, pass real data in envelopes, and end each building with a short quiz.
 - **Graph:** a knowledge graph of the whole project.
   - Every file or function is a dot coloured by its area; every connection is a line.
   - Click a dot to light up its neighbours.
   - Download the graph as JSON or GraphML for tools like Gephi, yEd or Cytoscape.
 
 **Also included:**
+- **Three explanation levels:** Simple (for kids and complete beginners), Normal, and Technical (for developers: signature, lines and connections).
+- **What changed:** a Changes button outlines every file and function changed since the last commit, or not committed yet, and shows the changed lines. Handy right after an AI assistant edits your code.
+- **Phones and tablets:** every view works on a small screen, with pinch to zoom and the details in a sheet under the map.
 - Search, guided tours, a glossary of coding words, progress marks ("I understand this") and light and dark mode.
 - An optional rescan after every commit, which flags new or changed code so the explanations can be refreshed.
 
@@ -69,7 +72,7 @@ Open your project in Claude Code and ask in your own words, for example:
 Claude will then:
 
 1. Look around the project and set up `code-atlas/`.
-2. **Ask which colours you want.** It defaults to your project's brand colours if it finds them in your CSS or theme files, and you can choose a suggested palette or your own instead.
+2. **Ask which colours and which story world you want.** Colours default to your project's brand colours if it finds them in your CSS or theme files; you can choose a suggested palette or your own instead. The world defaults to a town.
 3. Group the code into a handful of clear areas and scan it.
 4. Write explanations, overview first: every area and file, then the entry points and busiest functions. Anything not yet explained is marked, and you can ask for any part later ("explain the billing area").
 5. Add the beginner text, walkthroughs and an overview story, check the page, and offer the optional rescan after each commit.
@@ -141,7 +144,8 @@ It works on any text-based code without setup:
 Claude edits these for you, but you can too. See [`references/config.md`](plugins/code-atlas/skills/code-atlas/references/config.md).
 - **Areas:** names, colours, icons, and which folders belong to each.
 - **The overview's left-to-right order.**
-- **Story vocabulary:** town, kitchen, hospital, or anything that fits your project.
+- **Story world** the page opens with (the reader can switch), or a custom one.
+- **Explanation level** the page opens with.
 - **Extra files** to include and folders to leave out.
 
 ## Limits

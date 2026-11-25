@@ -8,7 +8,7 @@
   "api/handlers/orders.go": { "what": "Everything about listing orders.", "does": "Loads the orders, labels each one and sends the labels back to the browser." },
   "api/handlers/orders.go#ListOrders": { "what": "Answers a request for /orders.", "does": "Asks loadOrders for every order, then writes each order's label into the reply." },
   "api/handlers/orders.go#loadOrders": { "what": "Gets the list of orders.", "does": "Returns two sample orders written into the code (a real shop would read a database here)." },
-  "api/handlers/orders.go#formatOrder": { "what": "Turns an order into the short label shown in lists.", "does": "Orders over 10 are 'big', the rest 'small'.", "example": "An order with a total of 20 becomes 'big'." }
+  "api/handlers/orders.go#formatOrder": { "what": "Turns an order into the short label shown in lists.", "does": "Orders over 10 are 'big', the rest 'small'.", "example": "An order with a total of 20 becomes 'big'.", "kid": "It looks at an order and puts a sticker on it: big or small.", "dev": "Pure function on Order; a single threshold check, no I/O." }
  },
  "glossary": {
   "handler": "A function the web server runs when a request arrives at one web address."

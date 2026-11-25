@@ -9,7 +9,9 @@ Builds a local website (`code-atlas/index.html`) that explains a codebase visual
 
 - **Map:** boxes and wires.
 - **Beginner:** the same map with job badges (Boss, Worker, Helper, Ingredients, Decoration), wires that say what happens, Takes in → Does → Gives back, Play and Follow.
-- **Story:** the code retold as a town (or any world) with characters, scenes, a code peek and a quiz.
+- **Story:** the code retold as a town, restaurant, space station, school or a world the user names, with characters, scenes, a code peek and a quiz. The reader picks the world from a menu.
+
+Every view works on phones and tablets: the details panel becomes a sheet under the map. Explanations have three levels (Simple, Normal, Technical; see `kid` and `dev` in `references/explain-format.md`). A **Changes** button lights up everything changed since the last commit, or not committed yet, with the changed lines.
 - **Graph:** a knowledge graph of the whole codebase. Every file (or function) is a dot coloured by area, and every connection is a line. Click to light up neighbours, double-click to open in the map, and download JSON or GraphML. `scan.mjs` also writes `code-atlas/graph.json` and `code-atlas/graph.graphml` for tools like Gephi, yEd, Cytoscape or a graph database.
 
 The engine is in `scripts/` and `assets/`. Your part is understanding the code and writing explanations that are true, plain and useful. The scanner does the rest.
@@ -34,8 +36,10 @@ Run the scripts with the skill folder as `$SKILL` (the folder this file is in).
    - Give the areas clear human names and one-line descriptions. 4 to 9 areas is ideal; merge or split the guesses.
    - Set the order of `lanes` so the overview reads left to right in the direction things flow (for example: shared code, then the apps, then build and deploy).
    - Add `content` boxes for big folders of words or data (posts, fixtures, migrations), so they appear as one box instead of hundreds.
-   - Choose a story `world` that fits the project if a town doesn't (a kitchen for a food app, a hospital for a health app). Give each area a `place` name in that world.
-4. **Ask about colours.** Before scanning, ask the user which colours they want; the map is theirs to look at every day. Use the question tool if you have one, otherwise ask in chat. Offer:
+   - Set `depth` if the user said who it is for: `simple` for a child or a complete beginner, `technical` for a developer. Otherwise leave `normal`.
+4. **Ask about colours and the story world**, in one question round. For the world, offer Town (default), Restaurant, Space station and School, suggest the one that fits the project (a restaurant for a food app), and accept their own idea as a custom world (`references/config.md`). Write it to `world` in `config.json` and give each area a `place` name in that world. Tell them they can switch worlds later from the World menu in the Story view.
+
+   For colours: before scanning, ask the user which colours they want; the map is theirs to look at every day. Use the question tool if you have one, otherwise ask in chat. Offer:
    - **The project's brand colours (default):** the accent and fonts `init.mjs` found, with the source it reports, for example "`--brand-primary` #E11D48 in web/src/styles.css". If it found none, say so and make the neutral blue the default.
    - **A suggested palette** that fits the project, for example calm blues for a finance app or warm tones for a food app. Name the accent and the mood.
    - **Their own colour:** a hex code or a colour name you turn into one.

@@ -53,5 +53,22 @@ assert.ok(g.nodes.length > 40 && g.edges.some(e => e.kind === 'contains'), 'know
 assert.ok(fs.readFileSync(path.join(tmp, 'code-atlas/graph.graphml'), 'utf8').startsWith('<?xml'), 'GraphML written');
 assert.ok(fs.existsSync(path.join(tmp, 'code-atlas/index.html')) && fs.existsSync(path.join(tmp, 'code-atlas/assets/theme.css')), 'viewer and theme in place');
 assert.ok(fs.readFileSync(path.join(tmp, '.git/info/exclude'), 'utf8').includes('/code-atlas/'), 'output folder is kept out of git');
+// "what changed": commit, edit one function and the .env, rescan
+const git = (...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd: tmp, stdio: 'ignore' });
+git('add', '-A'); git('commit', '-qm', 'start');
+const go = path.join(tmp, 'api/handlers/orders.go');
+fs.writeFileSync(go, fs.readFileSync(go, 'utf8').replace('if o.Total > 10 {', 'if o.Total > 20 {'));
+fs.appendFileSync(path.join(tmp, '.env'), 'OTHER=also-not-real\n');
+run('scan.mjs', ...process.argv.slice(2));
+new Function('window', fs.readFileSync(path.join(tmp, 'code-atlas/data.js'), 'utf8'))(global.window);
+const C = global.window.MAP.changes;
+assert.ok(C && C.label === 'not committed yet', 'uncommitted edits are found');
+assert.deepEqual(Object.keys(C.files), ['api/handlers/orders.go'], 'only mapped files are listed (the .env is not)');
+assert.ok(C.fns.includes('api/handlers/orders.go#formatOrder') && !C.fns.includes('api/handlers/orders.go#ListOrders'), 'the changed function is found, its neighbour is not');
+assert.ok(!JSON.stringify(C).includes('also-not-real'), 'secret diff text never reaches the page');
+git('commit', '-qam', 'tweak');
+run('scan.mjs', ...process.argv.slice(2));
+new Function('window', fs.readFileSync(path.join(tmp, 'code-atlas/data.js'), 'utf8'))(global.window);
+assert.ok(global.window.MAP.changes.label.startsWith('the last commit') && global.window.MAP.changes.subject === 'tweak', 'a clean tree shows the last commit');
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('smoke test passed');

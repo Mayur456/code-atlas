@@ -84,7 +84,8 @@ const cfgWritten = write('config.json', {
   groupNames: {},
   edges: [],
   lanes: null,
-  world: { town: 'Town', neighbourhood: 'neighbourhood', building: 'building', person: 'person' },
+  world: { pack: 'town' }, // town, restaurant, space, school, or custom (see references/config.md)
+  depth: 'normal', // simple, normal or technical: the explanation level the page opens with
   maxFileKB: 300, maxFiles: 4000, groupAt: 12,
 });
 const themeWritten = write('theme.json', {

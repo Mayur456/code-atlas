@@ -16,6 +16,8 @@ See `examples/explain-example.json` for a complete small example.
 - `what`: one sentence, what it is for. Shown large.
 - `does`: two to four sentences, how it does it.
 - `example`: optional. A concrete input and output, or a real situation.
+- `kid`: optional. The **Simple** level: one short sentence a 12-year-old would follow, with an everyday comparison ("Like a waiter writing your order on a ticket."). Without it, Simple shows `what`.
+- `dev`: optional. The **Technical** level: one or two sentences for a developer, naming the pattern, types or side effects ("Pure function; formats with Sprintf; no I/O."). The page adds the signature, the line range and the number of connections by itself. Without it, Technical shows `what`.
 - `hash`: added by `--stamp`. When the code changes, the box shows "code changed".
 - Use `[[term]]` to link a glossary word, and backticks for code.
 
