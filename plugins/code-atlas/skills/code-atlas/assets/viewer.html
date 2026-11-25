@@ -521,6 +521,7 @@ function subOf(n) {
   if (n.kind === 'fn') return `lines ${n.start}-${n.end}`;
   return '';
 }
+const FONT = k => (FONT[k] ||= getComputedStyle(document.documentElement).getPropertyValue(k).trim() || 'sans-serif'); // the theme's own fonts, for measuring labels
 function fit(text, px, font) { const c = fit.c ||= document.createElement('canvas').getContext('2d'); c.font = font; if (c.measureText(text).width <= px) return text; while (text.length > 3 && c.measureText(text + '…').width > px) text = text.slice(0, -1); return text + '…'; }
 function shortName(n) { // folder hint for file names that repeat (index.html, index.astro)
   if (n.kind !== 'file') return n.name;
@@ -539,7 +540,7 @@ function card(g, n, L, ghost) {
     svgEl('rect', { width: 44, height: 44, rx: 12 }, ic);
     svgEl('g', { transform: 'translate(10 10)' }, ic).innerHTML = ICON[a];
     svgEl('text', { class: 't', x: 80, y: 42 }, g).textContent = n.name;
-    svgEl('text', { class: 's', x: 80, y: 61 }, g).textContent = fit(n.sub, w - 96, '400 12px "JetBrains Mono"');
+    svgEl('text', { class: 's', x: 80, y: 61 }, g).textContent = fit(n.sub, w - 96, '400 12px ' + FONT('--font-m'));
     const all = M.nodes.filter(x => areaOf(x.id)?.id === n.id);
     [[all.filter(x => x.kind === 'file').length, 'FILES', 22], [all.filter(x => x.kind === 'fn').length, 'FUNCTIONS', 86]].forEach(([v, l, x]) => { svgEl('text', { class: 'num', x, y: 100 }, g).textContent = v; svgEl('text', { class: 'numl', x, y: 113 }, g).textContent = l; });
     const ns = inArea(n.id), d = ns.filter(x => done.has(x.id)).length, tw = w - 44;
@@ -553,9 +554,9 @@ function card(g, n, L, ghost) {
   svgEl('rect', { width: bw, height: 18, rx: 9 }, bd);
   if (job) svgEl('path', { d: JOBICON[job], transform: 'translate(6 3)' }, bd);
   svgEl('text', { x: job ? 22 : 6.5, y: 12.6 }, bd).textContent = label;
-  svgEl('text', { class: 't', x: 18, y: 54 }, g).textContent = fit(shortName(n), w - 36, '700 15px "Space Grotesk"');
+  svgEl('text', { class: 't', x: 18, y: 54 }, g).textContent = fit(shortName(n), w - 36, '700 15px ' + FONT('--font-h'));
   const where = ghost ? `in ${areaOf(n.id).name}${n.kind === 'fn' ? ' · ' + N.get(n.parent).name : ''}` : subOf(n);
-  svgEl('text', { class: 's', x: 18 + bw + 8, y: 26 }, g).textContent = fit(where, w - bw - 64, '400 11px "JetBrains Mono"');
+  svgEl('text', { class: 's', x: 18 + bw + 8, y: 26 }, g).textContent = fit(where, w - bw - 64, '400 11px ' + FONT('--font-m'));
   if (done.has(n.id)) { svgEl('circle', { class: 'tick', cx: w - 20, cy: 22, r: 9 }, g); svgEl('path', { class: 'tick-mark', d: `M${w - 24.5} 22l3 3 5.5-6` }, g); }
   else if (n.kind !== 'group') svgEl('circle', { class: 'dot-' + n.status, cx: w - 20, cy: 22, r: 4.5 }, g);
 }
@@ -575,8 +576,8 @@ function draw(fromPoint) {
     svgEl('rect', { x: ln.x, y: 0, width: ln.w, height: ln.h, rx: 18 }, g);
     svgEl('circle', { class: 'lc', cx: ln.x + 30, cy: 30, r: 13 }, g);
     svgEl('text', { class: 'ln', x: ln.x + 30, y: 34.5, 'text-anchor': 'middle' }, g).textContent = ln.n;
-    svgEl('text', { class: 'lt', x: ln.x + 52, y: 28 }, g).textContent = fit(ln.title.toUpperCase(), ln.w - 66, '600 12px "JetBrains Mono"');
-    svgEl('text', { class: 'ls', x: ln.x + 52, y: 44 }, g).textContent = fit(ln.sub, ln.w - 66, '400 11px "JetBrains Mono"');
+    svgEl('text', { class: 'lt', x: ln.x + 52, y: 28 }, g).textContent = fit(ln.title.toUpperCase(), ln.w - 66, '600 12px ' + FONT('--font-m'));
+    svgEl('text', { class: 'ls', x: ln.x + 52, y: 44 }, g).textContent = fit(ln.sub, ln.w - 66, '400 11px ' + FONT('--font-m'));
     if (i < L.lanes.length - 1) svgEl('path', { class: 'flowarrow', d: `M${ln.x + ln.w + L.gapX / 2 - 7} 22l14 8-14 8z` }, g);
   });
   for (const w of v.wires) {
