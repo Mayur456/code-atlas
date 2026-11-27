@@ -54,7 +54,7 @@ Code Atlas creates one folder, `code-atlas/`, inside your project. Open `code-at
 **As a plugin (recommended).** In Claude Code:
 
 ```
-/plugin marketplace add Mayur456/code-atlas
+/plugin marketplace add Mayur-Rafaliya/code-atlas
 /plugin install code-atlas@code-atlas
 ```
 
