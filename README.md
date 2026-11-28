@@ -2,6 +2,12 @@
 
 **Website: [codeatlas.mayur.life](https://codeatlas.mayur.life)**
 
+**Watch the tour** (opens the video on the website):
+
+| English | Hindi |
+|---|---|
+| [![Code Atlas launch video in English](docs/video/launch-en.jpg)](https://codeatlas.mayur.life/#watch-en) | [![Code Atlas launch video in Hindi](docs/video/launch-hi.jpg)](https://codeatlas.mayur.life/#watch-hi) |
+
 A Claude Code skill that turns any codebase, in any programming language, into a private website that explains how the code works. It shows a map you can zoom into, plain-English explanations of every part, the code itself, and a knowledge graph of how everything connects.
 
 It is built for people learning a codebase: newcomers to a team, people who built something with AI and now want to understand it, or anyone coming back to old code.
